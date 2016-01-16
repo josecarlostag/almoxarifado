@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"> 
+
+<h:head>
+	<meta charset="UTF-8"/>
+	<h:outputStylesheet library="almoxarifado" name="estilo.css"/>
+</h:head>
+<h:body>
+		<header>
+				<p:graphicImage name="almoxarifado/natal1.JPG"  width="210" />	 	   					
+		</header>
+		
+		
+		<p:tabMenu activeIndex="#{param.i}">
+    		<p:menuitem value="Usuários" outcome="/ConsultaUsuarios" icon="ui-icon-person">
+        		<f:param name="i" value="0" />
+    		</p:menuitem>
+		    <p:menuitem value="Clientes" outcome="/ConsultaClientes" icon="ui-icon-search">
+		        <f:param name="i" value="1" />
+		    </p:menuitem>
+		    <p:menuitem value="Solicitações" outcome="/ConsultaSolicitacoes" icon="ui-icon-cart">
+		        <f:param name="i" value="2" />
+		    </p:menuitem>
+		    <p:menuitem value="Equipamentos" outcome="/ConsultaEquipamentos" icon="ui-icon-wrench">
+		        <f:param name="i" value="3" />
+		    </p:menuitem>
+		    <p:menuitem value="Entradas" outcome="/ConsultaEntradas" icon="ui-icon-arrowreturnthick-1-n">
+		        <f:param name="i" value="4" />
+		    </p:menuitem>
+		    <p:menuitem value="Saídas" outcome="/ConsultaSaidas" icon="ui-icon-arrowreturnthick-1-e">
+		        <f:param name="i" value="5" />
+		    </p:menuitem>
+		    <p:menuitem value="Devoluções" outcome="/ConsultaDevolucoes" icon="ui-icon-arrowreturnthick-1-s">
+		        <f:param name="i" value="6" />
+		    </p:menuitem>
+		    <p:menuitem value="Fornecedores" outcome="/ConsultaFornecedores" icon="ui-icon-suitcase">
+		        <f:param name="i" value="7" />
+		    </p:menuitem>
+		    <p:menuitem value="Cidades" outcome="/ConsultaCidades" icon="ui-icon-flag">
+		        <f:param name="i" value="8" />
+		    </p:menuitem>
+		   
+		        
+		    
+		</p:tabMenu>
+							
+			<div id="conteudo">					
+			<ui:insert name="corpo"/>	
+		</div>
+				
+		<footer>
+			<br/>
+			Sistema de Gestão de equipamentos.<br/><br/>			
+		</footer>
+		
+		<h:form>
+			<p:confirmDialog global="true">
+			
+				<p:commandButton value="Não" type="button" 
+				styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+				
+				<p:commandButton value="Sim" type="button"
+				styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>
+			
+			</p:confirmDialog>
+		
+		</h:form>
+
+</h:body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+	
+	 <ui:define name="corpo">	
+
+	<f:metadata> 
+    	   	<f:viewAction action="#{gestaoClientesBean.consultar}"/>   
+ 	</f:metadata> 
+ 	<h1 style="font-weight:bold">Consulta de clientes</h1> 
+ 	
+ 	<h:form id="frm-cliente"> 	
+ 	
+ 	<p:messages id="msgs"/>
+ 	 
+ 		<p:toolbar id="toolbar">
+		<f:facet name="left">
+			<p:commandButton value="Novo cliente" icon="ui-icon-search" 
+			action="#{gestaoClientesBean.prepararNovoCadastro}"
+			process="@this"  update="cliente-dialog"
+			oncomplete="PF('edicaoClienteDialog').show()">
+			<p:resetInput target="cliente-dialog"/>
+			</p:commandButton>
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical" />
+	         		</span>
+	         		
+	         		<p:commandButton icon="ui-icon-pencil" title="Editar" 
+	         		process="@this"  update="cliente-dialog"
+					oncomplete="PF('edicaoClienteDialog').show()"
+	         		disabled="#{gestaoClientesBean.clienteSelecionado == null}">
+	         		
+	         		<f:setPropertyActionListener value="#{gestaoClientesBean.clienteSelecionado}" 
+	         		target="#{gestaoClientesBean.clienteEdicao}"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-trash" title="Excluir"
+	         		process="@this" update="clientes-table msgs toolbar"
+	         		action="#{gestaoClientesBean.excluir}"
+	         		disabled="#{gestaoClientesBean.clienteSelecionado == null}">
+	         		
+	         			<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+	         			message="Tem certeza que deseja excluir este cliente"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para XLS" 
+						ajax="false" immediate="true">
+	         			<p:dataExporter type="xls" target="clientes-table" fileName="clientes"/>
+	         		</p:commandButton>	
+		</f:facet>
+		</p:toolbar>
+	
+   	<p:dataTable value="#{gestaoClientesBean.todosClientes}" 
+   	var="cliente" border="1" cellspacing="0" cellpadding="2"
+	emptyMessage="Nenhum cliente cadastrado." rows="10" 
+	paginator="true" paginatorPosition="bottom" id="clientes-table"
+	selection="#{gestaoClientesBean.clienteSelecionado}"
+	selectionMode="single" rowKey="#{cliente.id}"> 
+	
+	<p:ajax event="rowSelect" update=":frm-cliente:toolbar"/>
+	<p:ajax event="rowUnselect" update=":frm-cliente:toolbar"/>
+   			
+		<p:column width="83" headerText="Codigo" sortBy="#{cliente.codigo}">
+  			<h:outputText value="#{cliente.codigo}"/>  
+		</p:column>
+			
+		<p:column headerText="Nome" sortBy="#{cliente.nomeCliente}"> 
+	  		<h:outputText value="#{cliente.nomeCliente}"/>  
+		</p:column>
+			
+		<p:column width="150" headerText="Endereço" > 
+			<h:outputText value="#{cliente.endereco}"/>   
+		</p:column> 
+					
+		<p:column width="95" headerText="Telefone"> 
+	 		<h:outputText value="#{cliente.telefone}"/>    
+		</p:column>
+			
+		<p:column width="150" headerText="E-mail">  
+			<h:outputText value="#{cliente.email}"/>    
+		</p:column>
+		
+  		<p:column width="80" sortBy="#{cliente.cidade.nomeCidade}" headerText="Cidade"> 
+	 		<h:outputText value="#{cliente.cidade.nomeCidade}"/>   
+		</p:column>
+			 
+		<p:column width="65" sortBy="#{cliente.cidade.estado}" headerText="Estado"> 
+	  		<h:outputText value="#{cliente.cidade.estado}"/>  
+		</p:column>
+		
+		<p:column width="80" headerText="Usuario">  
+			<h:outputText value="#{cliente.usuario.login}"/>    
+		</p:column>
+		
+		<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoClientesBean.clientes)}" /> 
+			<h:outputText value=" clientes cadastrados. " /> 
+		</f:facet>
+			 	 			 		
+ 	</p:dataTable>  
+ 	
+ 	
+		
+	 	<p:dialog header="Cliente" widgetVar="edicaoClienteDialog" 
+	 	id="cliente-dialog" resizable="false" modal="true" closeOnEscape="true">
+		
+			<p:messages id="msgs-dialog"/>
+			<p:defaultCommand target="cadastrar-button" scope="cliente-dialog"/>
+			<h:panelGrid columns="2" id="painel-dialog">
+			
+			<f:facet name="header"> 
+				<h:outputText value="Dados para cadastro de clientes" style="font-weight:bold"/> 				
+			</f:facet> 
+			
+				<p:outputLabel value="Código: " for="codigo-cliente" style="font-weight:bold"/>
+				<p:inputMask id="codigo-cliente" size="10" maxlength="10"
+				value="#{gestaoClientesBean.clienteEdicao.codigo}" mask="C9999"/>
+				
+				<p:outputLabel value="Nome: " for="nome-cliente" style="font-weight:bold"/>
+				<p:inputText id="nome-cliente" size="30" maxlength="30"
+				value="#{gestaoClientesBean.clienteEdicao.nomeCliente}"/>
+					
+				
+				<p:outputLabel value="Telefone: " for="telefone-cliente" style="font-weight:bold"/>
+				<p:inputMask id="telefone-cliente" size="20" maxlength="20"
+				value="#{gestaoClientesBean.clienteEdicao.telefone}" mask="(99)9999-9999"/>
+				
+				<p:outputLabel value="Email: " for="email-cliente" style="font-weight:bold"/>
+				<p:inputText id="email-cliente" size="45" maxlength="40"
+				value="#{gestaoClientesBean.clienteEdicao.email}"/>
+				
+				<p:outputLabel value="Endereço: " for="endereco-cliente" style="font-weight:bold"/>
+				<p:inputText id="endereco-cliente" size="10" maxlength="20"
+				value="#{gestaoClientesBean.clienteEdicao.endereco}"/>
+				
+				<p:outputLabel for="cidade" value="Cidade: " style="font-weight:bold" />
+                <p:selectOneMenu id="cidade" value="#{gestaoClientesBean.clienteEdicao.cidade}" 
+                converter="converterCidade" style="width:190px" itemValue="" noSelectionOption="true" >
+                	<f:selectItem itemLabel="Selecione cidade" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoCidadesBean.cidades}" 
+                    itemLabel="#{cidade.nomeCidade}" itemValue="#{cidade}" var="cidade" sortBy="#{nomeCidade}"/>
+                </p:selectOneMenu>
+                
+       			<p:outputLabel for="usuario" value="Usuario: " style="font-weight:bold"/>
+                <p:selectOneMenu id="usuario" value="#{gestaoClientesBean.clienteEdicao.usuario}" 
+                converter="converterUsuario" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione usuario" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoUsuariosBean.usuarios}" 
+                    itemLabel="#{usuario.nomeUsuario}" itemValue="#{usuario}" var="usuario"/>
+                </p:selectOneMenu>
+   			       										
+			<h:outputText />
+					<p:commandButton value="Salvar" id="cadastrar-button"
+						action="#{gestaoClientesBean.salvar}"
+						process="cliente-dialog" update="msgs-dialog painel-dialog"
+						oncomplete="if (!args.validationFailed) PF('edicaoClienteDialog').hide()" />
+												  								
+			</h:panelGrid>
+	 			
+		</p:dialog>  
+		
+	</h:form> 
+	
+</ui:define>
+
+</ui:composition> 

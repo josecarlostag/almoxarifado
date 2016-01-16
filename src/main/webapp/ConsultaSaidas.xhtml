@@ -1,0 +1,245 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+	
+ 	<ui:define name="corpo">	
+
+	<f:metadata> 
+   	<f:viewAction action="#{gestaoSaidasBean.consultar}"/> 
+   	<f:viewAction action="#{gestaoEquipamentosBean.consultar}"/>
+   	<f:viewAction action="#{gestaoSaidaEquipamentosBean.consultar}"/>
+ 	</f:metadata> 
+ 	<h1 style="font-weight:bold">Consulta de saidas</h1> 
+ 	
+ 	<h:form id="frm-saida"> 	
+ 	
+	<p:messages id="msgs"/>
+ 	 
+	<p:toolbar id="toolbar">
+	
+		<f:facet name="left">
+		
+			<p:commandButton id="saida"  value="Nova saída" icon="ui-icon-arrowreturnthick-1-e" 
+				action="#{gestaoSaidasBean.prepararNovoCadastro}"  process="@this"  update="saida-dialog"
+				oncomplete="PF('edicaoSaidaDialog').show()" disabled="#{gestaoSaidasBean.saidaSelecionada != null}">		
+				<p:resetInput target="saida-dialog"/>
+			</p:commandButton>
+				
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical" />
+	   		</span>
+		         		
+	   		<p:commandButton icon="ui-icon-pencil" title="Editar" process="@this" update="saida-dialog"
+			oncomplete="PF('edicaoSaidaDialog').show()" disabled="#{gestaoSaidasBean.saidaSelecionada == null}">
+			
+				<p:resetInput target="saida-dialog" />	         		
+				<f:setPropertyActionListener value="#{gestaoSaidasBean.saidaSelecionada}"
+				target="#{gestaoSaidasBean.saidaEdicao}"/>
+				
+		    </p:commandButton>
+		         		
+			<p:commandButton icon="ui-icon-trash" title="Excluir" process="@this" update="saidas-table msgs toolbar"
+			action="#{gestaoSaidasBean.excluir}" disabled="#{gestaoSaidasBean.saidaSelecionada == null}">
+				<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão" 
+				message="Tem certeza que deseja excluir esta saida"/>     		
+			</p:commandButton>
+		         		
+	   		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para PDF" ajax="false" immediate="true">
+				<p:dataExporter type="pdf" target="saidas-table" fileName="saidas"/>
+	   		</p:commandButton>
+	   		 
+		</f:facet>
+		
+	</p:toolbar>
+	
+   	<p:dataTable value="#{gestaoSaidasBean.todasSaidas}" var="saida" border="1" cellspacing="0" cellpadding="2"
+ 	emptyMessage="Nenhuma saida cadastrada" rows="10" paginator="true" paginatorPosition="bottom" style="margin-top: 10px" 
+ 	id="saidas-table" selection="#{gestaoSaidasBean.saidaSelecionada}" selectionMode="single" rowKey="#{saida.id}"> 
+ 		
+		<p:ajax event="rowSelect" update=":frm-saida:toolbar"/>
+		<p:ajax event="rowUnselect" update=":frm-saida:toolbar"/>  
+   			
+		<p:column headerText="Solicitação" sortBy="#{saida.solicitacao.ordemServico}" width="90" >			
+ 			<h:outputText value="#{saida.solicitacao.ordemServico}"/>  
+		</p:column>
+			
+		<p:column headerText="Status" sortBy="#{saida.solicitacao.statusSolicitacao}" width="120" >			
+			<h:outputText value="#{saida.solicitacao.statusSolicitacao}"/>  
+		</p:column>
+			
+		<p:column headerText="Data" sortBy="#{saida.dataSaida}" width="80">  
+			<h:outputText value="#{saida.dataSaida}">
+	  			<f:convertDateTime pattern="dd/MM/yyyy" timeZone="America/Sao_Paulo" /> 	
+  			</h:outputText>  
+		</p:column>
+			
+		<p:column headerText="Cliente" sortBy="#{saida.solicitacao.cliente.nomeCliente}" >			
+			<h:outputText value="#{saida.solicitacao.cliente.nomeCliente}"/>  
+		</p:column>
+  						 
+		<p:column headerText="Usuario" width="80">  
+			<h:outputText value="#{saida.usuario.login}"/>  
+		</p:column>
+			
+		<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoSaidasBean.todasSaidas)}" /> 
+			<h:outputText value=" saídas cadastradas. " />
+		</f:facet> 
+						 	 			 		
+ 	</p:dataTable>  
+		
+		<p:dialog header="Saída" widgetVar="edicaoSaidaDialog" id="saida-dialog" 
+ 		resizable="false" modal="true" closeOnEscape="true">
+			
+		<p:messages id="msgs-dialog"/>
+				
+		<p:defaultCommand target="cadastrar-button" scope="saida-dialog"/>
+		
+		<h:panelGrid columns="6" id="painel-dialog">
+				
+		<f:facet name="header"> 
+			<h:outputText value="Dados para cadastro da saida" style="font-weight:bold"/> 				
+		</f:facet>
+																											
+		<p:outputLabel value="Solicitação: " for="solicitacao" style="font-weight:bold"/>		
+		<p:selectOneMenu  id="solicitacao" value="#{gestaoSaidasBean.saidaEdicao.solicitacao}" filter="true" 
+		filterMatchMode="contains" converter="converterSolicitacao" panelStyle="width:70px"  style="width:90px" itemValue="" 
+		noSelectionOption="true" required="true" requiredMessage="Selecione solicitação.">   
+			<f:selectItem itemLabel="Solicitações" /> 
+			<f:selectItems value="#{gestaoSolicitacoesBean.solicitacoesSaida}" var="solicitacao" 
+			itemLabel="#{solicitacao.ordemServico}" itemValue="#{ordemServico}"/> 
+					
+			<p:ajax update= "saida-dialog equipamentos-table" event="itemSelect"  
+			process="solicitacao" listener="#{gestaoSaidasBean.abrir}"  oncomplete="PF('edicaoSaidaDialog').show()">
+			
+				<f:setPropertyActionListener value="#{gestaoSaidasBean.saidaSelecionada}"
+				target="#{gestaoSaidasBean.saidaEdicao}"/>
+				
+				<f:setPropertyActionListener value="#{gestaoSolicitacoesBean.solicitacaoSelecionada}" 
+	         		target="#{gestaoSolicitacoesBean.solicitacaoEdicao}"/>	
+				     													
+			</p:ajax>
+			
+		</p:selectOneMenu  >
+		
+		<h:outputText /><h:outputText />			
+		<h:outputText value="Status: " style="font-weight:bold"/>				
+		<h:outputText value="#{gestaoSaidasBean.saidaEdicao.solicitacao.statusSolicitacao}" style="font-weight:bold"/>
+									         		         		
+		<p:outputLabel value="Data da solicitação" for="data-solicitacao" style="font-weight:bold"/>
+		<p:calendar id="data-solicitacao" size="10" maxlength="10" pattern="dd/MM/yyyy" mask="99/99/9999"
+		value="#{gestaoSaidasBean.saidaEdicao.solicitacao.dataSolicitacao}" disabled="true" />
+															
+		<h:outputText value="Cliente:" for="cliente-saida" style="font-weight:bold"/> 
+		<h:inputText id="cliente-solicitacao" size="800"   maxlength="300" style="width:250px"
+		value="#{gestaoSaidasBean.saidaEdicao.solicitacao.cliente.nomeCliente}" disabled="true"/>
+																							
+		<h:outputText value="Descrição:" for="descricao-saida" style="font-weight:bold"/> 
+		<h:inputText id="descricao-solicitacao" size="1800"   maxlength="300" style="width:250px"
+		value="#{gestaoSaidasBean.saidaEdicao.solicitacao.descricao}" disabled="true"/>
+					
+		<p:outputLabel value="Data da saida:" for="data-saida" style="font-weight:bold"/>
+		<p:calendar id="data-saida" size="10" maxlength="10" pattern="dd/MM/yyyy" mask="99/99/9999"
+		value="#{gestaoSaidasBean.saidaEdicao.dataSaida}" required="true" requiredMessage="Informa a data de saída."
+		disabled="#{gestaoSaidasBean.saidaEdicao.solicitacao.statusSolicitacao == 'ATENDIDA'}"  timeZone="America/Sao_Paulo" >
+							
+		</p:calendar>
+						
+		 <p:outputLabel  value="Usuario:" for="usuario" style="font-weight:bold"/>
+	    	<p:selectOneMenu id="usuario" value="#{gestaoSaidasBean.saidaEdicao.usuario}" 
+	    	converter="converterUsuario" style="width:180px" itemValue="" required="true" requiredMessage="Selecione usuário."
+	    	disabled="#{gestaoSaidasBean.saidaEdicao.solicitacao.statusSolicitacao == 'ATENDIDA'}">
+			<f:selectItem itemLabel="Selecione usuario" itemValue="" noSelectionOption="true" />
+	 		<f:selectItems value="#{gestaoUsuariosBean.usuarios}" 
+			 itemLabel="#{usuario.nomeUsuario}" itemValue="#{usuario}" var="usuario"/>
+	    </p:selectOneMenu>
+	    
+	    <h:outputText /><h:outputText />
+	    	                
+		<p:outputLabel value="Equipamento: " for="equipamentoSelecionado" style="font-weight:bold"/>		
+		<h:column>
+			<p:selectOneMenu id="equipamentoSelecionado"  
+			value="#{gestaoSaidaEquipamentosBean.equipamentoEdicao}" converter="converterEquipamento" 
+			panelStyle="width:70px" style="width:90px" disabled="#{gestaoSaidasBean.saidaEdicao.solicitacao.statusSolicitacao == 'ATENDIDA'}">   
+				<f:selectItem itemValue=""  itemLabel="Selecione" /> 
+				<f:selectItems value="#{gestaoEquipamentosBean.disponiveis}" 
+				var="equipamento" itemLabel="#{equipamento.patrimonio}" itemValue="#{equipamento}"/> 
+				<p:ajax update="equipamentos-table" event="itemSelect"  
+				listener="#{gestaoSaidaEquipamentosBean.salvar}">
+				
+				<f:setPropertyActionListener value="#{gestaoEquipamentosBean.equipamentoEdicao}" 
+	         		target="#{gestaoSaidaEquipamentosBean.equipamentoEdicao}"/>
+	         		
+	         	<f:setPropertyActionListener value="#{gestaoSaidasBean.saidaSelecionada}" 
+	         		target="#{gestaoSaidaEquipamentosBean.saidaEdicao}"/>	
+				
+				</p:ajax>	
+			</p:selectOneMenu >	 	
+		</h:column>
+							
+		<h:outputText />
+		
+		<p:commandButton value="Salvar saída"  id="cadastrar-button" title="Salvar" action="#{gestaoSaidasBean.salvar}"
+			process="saida-dialog" update=" msgs-dialog painel-dialog" oncomplete="if (!args.validationFailed) PF('edicaoSaidaDialog').hide()"
+			disabled="#{gestaoSaidasBean.saidaEdicao.solicitacao.statusSolicitacao == 'ATENDIDA'}"/> 	
+			
+		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para PDF" ajax="false" immediate="true">
+				<p:dataExporter type="pdf" target="equipamentos-table" fileName="saidas"/>
+	   		</p:commandButton>	
+		
+		</h:panelGrid>
+		
+		<p:dataTable value="#{gestaoSaidaEquipamentosBean.selecionada}"
+		 filterBy="#{gestaoSaidaEquipamentosBean.selecionada}" 
+ 		var="saidaEquipamento" border="1" cellspacing="0" cellpadding="2"
+ 		emptyMessage="Nenhum equipamento cadastrado" rows="10" 
+ 		paginator="true" paginatorPosition="bottom" 
+ 		style="margin-top: 10px margin-bottom:0" id="equipamentos-table"> 
+ 		 			   		
+			<p:column  headerText="Patrimônio" sortBy="#{saidaEquipamentoEdicao.equipamento.patrimonio}" width="100"> 
+				<h:outputText value="#{saidaEquipamento.equipamento.patrimonio}"/> 
+			</p:column>
+ 			
+			<p:column headerText="Número de Série" sortBy="#{saidaEquipamento.equipamento.serie}" width="125"> 
+				<h:outputText value="#{saidaEquipamento.equipamento.serie}"/>  
+			</p:column>
+					
+			<p:column headerText="Categoria" sortBy="#{saidaEquipamento.equipamento.categoria}" width="80"> 	 
+				<h:outputText value="#{saidaEquipamento.equipamento.categoria}"/>   
+			</p:column> 
+					
+			<p:column headerText="Descrição" >
+				<h:outputText value="#{saidaEquipamento.equipamento.descricao}"/>   
+			</p:column>
+					
+			<p:column  headerText="Marca" sortBy="#{saidaEquipamento.equipamento.marca}" width="70"> 
+				<h:outputText value="#{saidaEquipamento.equipamento.marca}"/>    
+			</p:column>
+					 
+			<p:column  headerText="Status" sortBy="#{saidaEquipamento.equipamento.statusEquipamento}" width="70"> 
+				<h:outputText value="#{saidaEquipamento.equipamento.statusEquipamento}"/>    
+			</p:column>
+					
+			<p:column headerText="Modelo" width="80" > 
+				<h:outputText value="#{saidaEquipamento.equipamento.modelo}"/>    
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoSaidaEquipamentosBean.selecionada)}" /> 
+			<h:outputText value=" equipamentos selecionados. " />
+		</f:facet>
+												 	 			 		
+		</p:dataTable>
+	
+		</p:dialog>
+				
+	</h:form> 
+
+</ui:define>
+
+</ui:composition> 

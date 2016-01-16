@@ -1,0 +1,168 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+	
+	 <ui:define name="corpo">	
+		<f:metadata> 
+	    	   	<f:viewAction action="#{gestaoUsuariosBean.consultar}"/>   
+	 	</f:metadata> 
+	 	
+ 	<h1 style="font-weight:bold">Consulta de usuários</h1> 
+ 	 	 
+ 	<h:form id="frm-usuario"> 
+ 		
+ 		<p:messages id="msgs"/>
+	
+ 		<p:toolbar id="toolbar">
+		<f:facet name="left">
+			<p:commandButton value="Novo usuário" icon="ui-icon-person" 
+	  		action="#{gestaoUsuariosBean.prepararNovoCadastro}" 
+			process="@this" update="usuario-dialog"
+			oncomplete="PF('edicaoUsuarioDialog').show()">
+			<p:resetInput target="usuario-dialog"/>
+			</p:commandButton>
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical" />
+	         		</span>
+	         		
+	         		<p:commandButton icon="ui-icon-pencil" title="Editar" 
+	         		process="@this" update="usuario-dialog"
+					oncomplete="PF('edicaoUsuarioDialog').show()"
+	         		disabled="#{gestaoUsuariosBean.usuarioSelecionado == null}">
+	         		
+	         		<f:setPropertyActionListener value="#{gestaoUsuariosBean.usuarioSelecionado}" 
+	         		target="#{gestaoUsuariosBean.usuarioEdicao}"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-trash" title="Excluir" 
+	         		process="@this" update="usuarios-table msgs toolbar"
+	         		action="#{gestaoUsuariosBean.excluir}"
+					disabled="#{gestaoUsuariosBean.usuarioSelecionado == null}">
+					
+						<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+	         			message="Tem certeza que deseja excluir este usuário"/>
+					
+					</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para XLS"
+	         			ajax="false" immediate="true">
+	         			<p:dataExporter type="xls" target="usuarios-table" fileName="usuarios"/>
+	         		</p:commandButton> 
+		</f:facet>
+		</p:toolbar>
+	
+     	<p:dataTable value="#{gestaoUsuariosBean.todosUsuarios}" 
+     	var="usuario" border="1" cellspacing="0" cellpadding="2"
+ 		emptyMessage="Nenhum usuário cadastrado" rows="10" 
+ 		paginator="true" paginatorPosition="bottom" 
+ 		style="margin-top: 10px" id="usuarios-table"
+ 		selection="#{gestaoUsuariosBean.usuarioSelecionado}"
+ 		selectionMode="single" rowKey="#{usuario.id}">  
+ 		
+ 		<p:ajax event="rowSelect" update=":frm-usuario:toolbar"/>
+		<p:ajax event="rowUnselect" update=":frm-usuario:toolbar"/>
+   			
+  			<p:column width="105" headerText="Login" sortBy="#{usuario.login}"> 			 
+	  			<h:outputText value="#{usuario.login}"/>  
+			</p:column>
+			
+			<p:column width="65" headerText="Perfil" sortBy="#{usuario.perfil}"> 
+	  			<h:outputText value="#{usuario.perfil}"/>  
+			</p:column>
+			
+			<p:column headerText="Nome Usuário" sortBy="#{usuario.login}">  
+	  			<h:outputText value="#{usuario.nomeUsuario}"/>  
+			</p:column>
+			
+ 			<p:column width="70" headerText="Matícula"> 		   		
+	   			<h:outputText value="#{usuario.matricula}"/>   
+			</p:column> 
+			
+	 		<p:column width="125" headerText="RG"> 
+				<h:outputText value="#{usuario.rg}"/>   
+			</p:column>
+			 
+			<p:column width="170" headerText="Email">  
+				<h:outputText value="#{usuario.email}"/>    
+			</p:column>
+			
+			<p:column width="90" headerText="Empresa"> 
+				<h:outputText value="#{usuario.empresa}"/>    
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoUsuariosBean.usuarios)}" /> 
+			<h:outputText value=" usuários cadastrados. " />
+			</f:facet>
+			 	 			 		
+	 	</p:dataTable>  
+		
+	 	<p:dialog header="Usuário" widgetVar="edicaoUsuarioDialog" 
+	 	id="usuario-dialog" resizable="false" modal="true" closeOnEscape="true">
+		
+			<p:messages id="msgs-dialog" />
+			<p:defaultCommand target="cadastrar-button" scope="usuario-dialog"/>
+			
+			<h:panelGrid columns="2" id="painel-dialog">
+			
+					<f:facet name="header"> 
+						<h:outputText value="Dados para cadastro de usuarios" style="font-weight:bold"/> 				
+					</f:facet> 
+								
+				<p:outputLabel value="Perfil: " for="perfil" style="font-weight:bold"/>
+					<p:selectOneMenu id="perfil" value="#{gestaoUsuariosBean.usuarioEdicao.perfil}">
+						<f:selectItem itemLabel="Selecione perfil" />
+						<f:selectItems value="#{gestaoUsuariosBean.perfilUsuario}" var="perfil"
+						itemLabel="#{perfil.descricao}" itemValue="#{perfil}" />
+					</p:selectOneMenu>
+							
+  				<p:outputLabel value="Login: " for="login-usuario" style="font-weight:bold"/> 
+				<p:inputText id="login-usuario" size="18"  maxlength="18"
+				value="#{gestaoUsuariosBean.usuarioEdicao.login}"/>
+				
+				<p:outputLabel value="Senha: " for="senha-usuario" style="font-weight:bold"/>
+				<p:password id="senha-usuario" size="8" maxlength="8"
+				value="#{gestaoUsuariosBean.usuarioEdicao.senha}"/>
+				 
+				<p:outputLabel value="Nome: " for="nome-usuario" style="font-weight:bold" /> 
+				<p:inputText id="nome-usuario" size="30"  maxlength="30" 
+				value="#{gestaoUsuariosBean.usuarioEdicao.nomeUsuario}"/> 
+				 
+				<p:outputLabel value="Matricula: " for="matricula-usuario" style="font-weight:bold"/> 
+				<p:inputMask id="matricula-usuario" size="8"  maxlength="8" 
+				value="#{gestaoUsuariosBean.usuarioEdicao.matricula}" mask="U9999"/>
+				
+				<p:outputLabel value="RG: " for="rg-usuario" style="font-weight:bold"/> 
+				<p:inputText id="rg-usuario"    size="20" maxlength="20"
+				value="#{gestaoUsuariosBean.usuarioEdicao.rg}"/>
+				
+				<p:outputLabel value="Email: " for="email-usuario" style="font-weight:bold"/>
+				<p:inputText id="email-usuario" size="30"  maxlength="30"
+				value="#{gestaoUsuariosBean.usuarioEdicao.email}" />
+								 
+				<p:outputLabel value="Empresa: " for="empresa-usuario" style="font-weight:bold"/> 
+				<p:inputText id="empresa-usuario" size="12"  maxlength="12"
+				value="#{gestaoUsuariosBean.usuarioEdicao.empresa}" />
+						
+				<p:outputLabel /> 
+				<p:commandButton value="Salvar"  id="cadastrar-button"
+					action="#{gestaoUsuariosBean.salvar}"
+					process="usuario-dialog" update="msgs-dialog painel-dialog"
+					oncomplete="if (!args.validationFailed) PF('edicaoUsuarioDialog').hide()"/> 
+					
+				</h:panelGrid>	
+		</p:dialog> 
+		 
+		
+	</h:form> 
+	
+</ui:define>
+
+</ui:composition> 

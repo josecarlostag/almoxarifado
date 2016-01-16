@@ -1,0 +1,164 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+	
+	 <ui:define name="corpo">	
+
+	<f:metadata> 
+    	   	<f:viewAction action="#{gestaoEntradasBean.consultar}"/>   
+ 	</f:metadata> 
+ 	
+ 	<h1 style="font-weight:bold">Consulta de entradas</h1> 
+ 	
+ 	<h:form id="frm-entrada"> 	
+ 	
+ 		<p:messages id="msgs"/>
+ 	 
+ 		<p:toolbar id="toolbar">
+		<f:facet name="left">
+			<p:commandButton value="Nova entrada" icon="ui-icon-arrowreturnthick-1-n" 
+			action="#{gestaoEntradasBean.prepararNovoCadastro}"
+			process="@this"  update="entrada-dialog"
+			oncomplete="PF('edicaoEntradaDialog').show()">
+			
+			<p:resetInput target="entrada-dialog"/>
+			</p:commandButton>
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical" />
+	         		</span>
+	         		
+	         		<p:commandButton icon="ui-icon-pencil" title="Editar"
+	         		process="@this"  update="entrada-dialog"
+					oncomplete="PF('edicaoEntradaDialog').show()"
+	         		disabled="#{gestaoEntradasBean.entradaSelecionada == null}" >
+	         		
+	         		<f:setPropertyActionListener value="#{gestaoEntradasBean.entradaSelecionada}" 
+	         		target="#{gestaoEntradasBean.entradaEdicao}"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-trash" title="Excluir"
+	         		process="@this" update="entradas-table msgs toolbar"
+	         		action="#{gestaoEntradasBean.excluir}" 
+	         		disabled="#{gestaoEntradasBean.entradaSelecionada == null}">
+	         		
+	         		<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+	         			message="Tem certeza que deseja excluir esta entrada"/>
+	         			
+	         		</p:commandButton>	
+	         		
+	         		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para PDF" 
+						ajax="false" immediate="true">
+	         			<p:dataExporter type="pdf" target="entradas-table" fileName="entradas"/>
+	         		</p:commandButton> 
+		</f:facet>
+		</p:toolbar>
+	
+     	<p:dataTable value="#{gestaoEntradasBean.todasEntradas}" var="entrada" 
+     	emptyMessage="Nenhuma entrada cadastrada" rows="10" 
+     	paginator="true" paginatorPosition="bottom"
+     	style="margin-top: 10px" id="entradas-table"
+     	selection="#{gestaoEntradasBean.entradaSelecionada}"
+     	selectionMode="single" rowKey="#{entrada.id}"> 
+     	  
+   		<p:ajax event="rowSelect" update=":frm-entrada:toolbar"/>
+		<p:ajax event="rowUnselect" update=":frm-entrada:toolbar"/>
+			
+  			<p:column  headerText="Solicitação" sortBy="#{entrada.solicitacao.ordemServico}" width="100"> 
+	  			<h:outputText value="#{entrada.solicitacao.ordemServico}"/>  
+			</p:column>
+			
+			<p:column headerText="Status" sortBy="#{entrada.solicitacao.statusSolicitacao}" width="90" >			
+	  			<h:outputText value="#{entrada.solicitacao.statusSolicitacao}"/>  
+			</p:column>
+			
+			<p:column headerText="Data" sortBy="#{entrada.dataEntrada}" width="65">  
+	  			<h:outputText value="#{entrada.dataEntrada}">
+	  			<f:convertDateTime pattern="dd/MM/yyyy" 
+	  			timeZone="America/Sao_Paulo" /> 	
+	  			</h:outputText>  
+			</p:column>
+			
+ 			<p:column  headerText="Descrição"> 		   		 
+	   			<h:outputText value="#{entrada.descricao}"/>   
+			</p:column> 
+			
+	 		<p:column headerText="Fornecedor" width="75"> 
+				<h:outputText value="#{entrada.fornecedor.nomeFornecedor}"/>   
+			</p:column>
+			 
+			<p:column headerText="Usuario" sortBy="#{entrada.usuario.login}" width="75">  
+	  			<h:outputText value="#{entrada.usuario.login}"/>  
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoEntradasBean.entradas)}" /> 
+			<h:outputText value=" entradas cadastradas. " />
+			</f:facet> 
+						 	 			 		
+	 	</p:dataTable>  
+		
+	 	<p:dialog header="Entrada" widgetVar="edicaoEntradaDialog" 
+	 	id="entrada-dialog" resizable="false" modal="true" closeOnEscape="true">
+		
+			<p:messages id="msgs-dialog" />		
+			<p:defaultCommand target="cadastrar-button" scope="entrada-dialog" />
+			<h:panelGrid columns="2" id="painel-dialog">
+			
+					<f:facet name="header"> 
+						<h:outputText value="Dados para cadastro da entrada" style="font-weight:bold" /> 				
+					</f:facet> 
+				
+				<p:outputLabel value="Solicitação: " for="solicitacao" style="font-weight:bold"/>		
+				<p:selectOneMenu  id="solicitacao" value="#{gestaoEntradasBean.entradaEdicao.solicitacao}"
+				filter="true" filterMatchMode="contains"
+				converter="converterSolicitacao" style="width:190px" itemValue="" noSelectionOption="true"
+				disabled="#{gestaoEntradasBean.entradaEdicao.solicitacao.statusSolicitacao == 'ABERTA'}"> > 
+				<f:selectItem itemLabel="Selecione solicitação"/> 
+				<f:selectItems value="#{gestaoSolicitacoesBean.solicitacoesEntrada}" 
+				itemLabel="#{solicitacao.ordemServico}" itemValue="#{solicitacao}" var="solicitacao" /> 
+				</p:selectOneMenu>
+								
+				<p:outputLabel value="Data da entrada: " for="data-entrada" style="font-weight:bold" />
+					<p:calendar id="data-entrada" size="10" maxlength="10"
+						value="#{gestaoEntradasBean.entradaEdicao.dataEntrada}"
+						pattern="dd/MM/yyyy" mask="99/99/9999"/>
+											
+				 <p:outputLabel value="Descrição: " for="descricao-entrada" style="font-weight:bold"/>
+				 	<h:inputTextarea id="descricao-entrada" size="500" maxlength="300" style="width:250px"
+					value="#{gestaoEntradasBean.entradaEdicao.descricao}"/>
+										
+				<p:outputLabel value="Fornecedor: " for="fornecedor" style="font-weight:bold"/>
+                <p:selectOneMenu id="fornecedor" value="#{gestaoEntradasBean.entradaEdicao.fornecedor}" 
+                converter="converterFornecedor" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione fornecedor" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoFornecedoresBean.fornecedores}" 
+                    itemLabel="#{fornecedor.nomeFornecedor}" itemValue="#{fornecedor}" var="fornecedor"/>
+                </p:selectOneMenu>
+														
+												
+				<p:outputLabel  value="Usuario: " for="usuario" style="font-weight:bold"/>
+                <p:selectOneMenu id="usuario" value="#{gestaoEntradasBean.entradaEdicao.usuario}" 
+                converter="converterUsuario" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione usuario" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoUsuariosBean.usuarios}" 
+                    itemLabel="#{usuario.nomeUsuario}" itemValue="#{usuario}" var="usuario"/>
+                </p:selectOneMenu>
+								
+				<h:outputText /> 
+				<p:commandButton value="Cadastrar"  id="cadastrar-button"
+					action="#{gestaoEntradasBean.salvar()}"
+					process="entrada-dialog" update="msgs-dialog painel-dialog"
+					oncomplete="if (!args.validationFailed)PF('edicaoEntradaDialog').hide()"/>
+													
+			</h:panelGrid>	 			
+		</p:dialog> 		
+	</h:form> 	
+</ui:define>
+</ui:composition> 

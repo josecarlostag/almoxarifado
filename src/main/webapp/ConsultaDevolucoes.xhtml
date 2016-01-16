@@ -1,0 +1,256 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+	
+	 <ui:define name="corpo">	
+
+	<f:metadata> 
+    	   	<f:viewAction action="#{gestaoDevolucoesBean.consultar}"/>
+    	   	<f:viewAction action="#{gestaoEquipamentosBean.consultar}"/>
+   			<f:viewAction action="#{gestaoDevolucaoEquipamentosBean.consultar}"/>  
+ 	</f:metadata> 
+ 	<h1 style="font-weight:bold">Consulta de devoluções</h1> 
+ 	
+ 	<h:form id="frm-devolucao"> 	
+ 	
+ 		<p:messages id="msgs"/>
+ 	 
+ 		<p:toolbar id="toolbar">
+ 		
+		<f:facet name="left">
+			<p:commandButton value="Nova devolução" icon="ui-icon-arrowreturnthick-1-s" 
+			action="#{gestaoDevolucoesBean.prepararNovoCadastro}"
+			process="@this" update="devolucao-dialog"
+			oncomplete="PF('edicaoDevolucaoDialog').show()">
+				<p:resetInput target="devolucao-dialog"/>
+			</p:commandButton>
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical" />
+	         		</span>
+	         		
+	         		<p:commandButton icon="ui-icon-pencil" title="Editar"
+	         		process="@this" update="devolucao-dialog"
+					oncomplete="PF('edicaoDevolucaoDialog').show()"
+	         		disabled="#{gestaoDevolucoesBean.devolucaoSelecionada == null}" >
+	         		
+	         		<f:setPropertyActionListener value="#{gestaoDevolucoesBean.devolucaoSelecionada}" 
+	         		target="#{gestaoDevolucoesBean.devolucaoEdicao}"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-trash" title="Excluir" 
+	         		process="@this" update="devolucoes-table msgs toolbar"
+	         		action="#{gestaoDevolucoesBean.excluir}"
+	         		disabled="#{gestaoDevolucoesBean.devolucaoSelecionada == null}">
+	         		
+	         			<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+	         			message="Tem certeza que deseja excluir este esta devolução"/>
+	         		
+	         		</p:commandButton>
+	         			         		
+	         		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para PDF"
+	         			ajax="false" immediate="true">
+	         			<p:dataExporter type="pdf" target="devolucoes-table" fileName="devolucoes"/>
+	         		</p:commandButton>
+		</f:facet>
+		</p:toolbar>
+	
+     	<p:dataTable value="#{gestaoDevolucoesBean.todasDevolucoes}"   
+ 		var="devolucao" border="1" cellspacing="0" cellpadding="2"
+ 		emptyMessage="Nenhuma devolução cadastrada" rows="10" 
+ 		paginator="true" paginatorPosition="bottom"
+ 		style="margin-top: 10px" id="devolucoes-table"
+ 		selection="#{gestaoDevolucoesBean.devolucaoSelecionada}"
+ 		selectionMode="single" rowKey="#{devolucao.id}">  
+ 		
+ 		<p:ajax event="rowSelect" update=":frm-devolucao:toolbar"/>
+		<p:ajax event="rowUnselect" update=":frm-devolucao:toolbar"/> 
+   			
+  			<p:column headerText="Solicitação" sortBy="#{devolucao.solicitacao.ordemServico}" width="90" >			
+	  			<h:outputText value="#{devolucao.solicitacao.ordemServico}"/>  
+			</p:column>
+			
+			<p:column headerText="Status" sortBy="#{devolucao.solicitacao.statusSolicitacao}" width="90" >			
+	  			<h:outputText value="#{devolucao.solicitacao.statusSolicitacao}"/>  
+			</p:column>
+			
+			<p:column headerText="Data" sortBy="#{devolucao.dataDevolucao}" width="80">  
+	  			<h:outputText value="#{devolucao.dataDevolucao}">
+	  			<f:convertDateTime pattern="dd/MM/yyyy" 
+	  			timeZone="America/Sao_Paulo" /> 	
+	  			</h:outputText>  
+			</p:column>
+			
+			<p:column headerText="Cliente" sortBy="#{devolucao.solicitacao.cliente.nomeCliente}" >			
+	  			<h:outputText value="#{devolucao.solicitacao.cliente.nomeCliente}"/>  
+			</p:column>
+						 
+			<p:column headerText="Usuario" width="80">  
+	  			<h:outputText value="#{devolucao.usuario.login}"/>  
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoDevolucoesBean.todasDevolucoes)}" /> 
+			<h:outputText value=" devoluções cadastradas. " /> 
+		</f:facet>
+						 	 			 		
+	 	</p:dataTable>  
+		
+	 	<p:dialog header="Devolução" widgetVar="edicaoDevolucaoDialog" id="devolucao-dialog"
+		resizable="false" modal="true" closeOnEscape="true">
+		
+			<p:messages id="msgs-dialog" />
+		<p:defaultCommand target="cadastrar-button" scope="devolucao-dialog"/>
+		
+		
+			<h:panelGrid columns="6" id="painel-dialog">
+			
+			<f:facet name="header"> 
+						<h:outputText value="Dados para cadastro de devolução" style="font-weight:bold"/> 				
+					</f:facet>
+			
+				<p:outputLabel value="Solicitação: " for="solicitacao" style="font-weight:bold"/>		
+				<p:selectOneMenu  id="solicitacao" value="#{gestaoDevolucoesBean.devolucaoEdicao.solicitacao}" filter="true" 
+				filterMatchMode="contains" converter="converterSolicitacao"  panelStyle="width:70px" style="width:90px" itemValue="" 
+				noSelectionOption="true" required="true" requiredMessage="Selecione solicitação."> 
+				<f:selectItem itemLabel="Solicitação"/> 
+				<f:selectItems value="#{gestaoSolicitacoesBean.solicitacoesDevolucoes}" var="solicitacao"
+				itemLabel="#{solicitacao.ordemServico}" itemValue="#{ordemServico}"  /> 
+				
+				<p:ajax update= "devolucao-dialog" event="itemSelect"  							
+				process="solicitacao" listener="#{gestaoDevolucoesBean.abrir}"  oncomplete="PF('edicaoDevolucaoDialog').show()">
+			
+					
+					<f:setPropertyActionListener value="#{gestaoDevolucoesBean.devolucaoSelecionada}"
+					target="#{gestaoDevolucoesBean.devolucaoEdicao}"/>
+				
+					<f:setPropertyActionListener value="#{gestaoSolicitacoesBean.solicitacaoSelecionada}" 
+	         		target="#{gestaoSolicitacoesBean.solicitacaoEdicao}"/>	
+				     													
+				</p:ajax>
+				
+				</p:selectOneMenu>
+				
+				<h:outputText /><h:outputText /><h:outputText />
+				<h:outputText value="Status: " style="font-weight:bold"/>
+				
+				<p:outputLabel value="Data da solicitação" for="data-solicitacao" style="font-weight:bold"/>
+		<p:calendar id="data-solicitacao" size="10" maxlength="10" pattern="dd/MM/yyyy" mask="99/99/9999"
+		value="#{gestaoDevolucoesBean.devolucaoEdicao.solicitacao.dataSolicitacao}" disabled="true" />
+															
+		<h:outputText value="Cliente:" for="cliente-saida" style="font-weight:bold"/> 
+		<h:inputText id="cliente-solicitacao" size="800"   maxlength="300" style="width:250px"
+		value="#{gestaoDevolucoesBean.devolucaoEdicao.solicitacao.cliente.nomeCliente}" disabled="true"/>
+																							
+		<h:outputText value="Descrição:" for="descricao-devolucao" style="font-weight:bold"/> 
+		<h:inputText id="descricao-solicitacao" size="1800"   maxlength="300" style="width:250px"
+		value="#{gestaoDevolucoesBean.devolucaoEdicao.solicitacao.descricao}" disabled="true"/>
+					
+		<p:outputLabel value="Data da devolução: " for="data-devolucao"  style="font-weight:bold"/>
+		<p:calendar id="data-devolucao" size="10" maxlength="10" pattern="dd/MM/yyyy" mask="99/99/9999"
+		value="#{gestaoDevolucoesBean.devolucaoEdicao.dataDevolucao}" disabled="true"/>
+						
+		<p:outputLabel  value="Usuario: " for="usuario" style="font-weight:bold"/>
+		
+         <p:selectOneMenu id="usuario" value="#{gestaoDevolucoesBean.devolucaoEdicao.usuario}" 
+         converter="converterUsuario" style="width:190px" itemValue="" noSelectionOption="true">
+         
+              	<f:selectItem itemLabel="Selecione usuario" itemValue="" noSelectionOption="true" />
+                  <f:selectItems value="#{gestaoUsuariosBean.usuarios}" 
+                  itemLabel="#{usuario.nomeUsuario}" itemValue="#{usuario}" var="usuario"/>
+              </p:selectOneMenu>
+                
+               <h:outputText /> <h:outputText />
+						
+			
+			<p:outputLabel value="Equipamento: " for="equipamentoSelecionado" style="font-weight:bold"/>		
+				<h:column>
+				<p:selectOneMenu id="equipamentoSelecionado" value="#{gestaoDevolucaoEquipamentosBean.equipamentoEdicao}" 
+				converter="converterEquipamento" panelStyle="width:70px" style="width:90px" 
+				disabled="#{gestaoDevolucoesBean.devolucaoEdicao.solicitacao.statusSolicitacao == 'ATENDIDA'}"> 
+				  
+					<f:selectItem itemValue=""  itemLabel="Selecione" /> 
+					<f:selectItems value="#{gestaoEquipamentosBean.utilizados}" 
+					var="equipamento" itemLabel="#{equipamento.patrimonio}" itemValue="#{equipamento}"/> 
+				
+				<p:ajax update="equipamentos-devolucoes" event="itemSelect"  
+				listener="#{gestaoDevolucaoEquipamentosBean.salvar}">
+				
+					<f:setPropertyActionListener value="#{gestaoEquipamentosBean.equipamentoEdicao}" 
+	         		target="#{gestaoDevolucaoEquipamentosBean.equipamentoEdicao}"/>
+				
+					<f:setPropertyActionListener value="#{gestaoDevolucoesBean.devolucaoSelecionada}"
+					target="#{gestaoDevolucaoEquipamentosBean.devolucaoEdicao}"/>
+				 									         					
+				</p:ajax>	
+				
+			</p:selectOneMenu >	 	
+		</h:column>
+							
+		<h:outputText />
+		
+		<p:commandButton value="Salvar Devolução"  id="cadastrar-button" title="Salvar" action="#{gestaoDevolucoesBean.salvar}"
+			process="devolucao-dialog" update=" msgs-dialog painel-dialog" oncomplete="if (!args.validationFailed) PF('edicaoDevolucaoDialog').hide()"
+			disabled="#{gestaoDevolucoesBean.devolucaoEdicao.solicitacao.statusSolicitacao == 'ATENDIDA'}"/> 	
+			
+		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para PDF" ajax="false" immediate="true">
+				<p:dataExporter type="pdf" target="equipamentos-devolucoes" fileName="devolucoes"/>
+	   		</p:commandButton>	
+		
+		</h:panelGrid>
+		
+		<p:dataTable value="#{gestaoDevolucaoEquipamentosBean.selecionada}"
+		 filterBy="#{gestaoDevolucaoEquipamentosBean.selecionada}" 
+ 		var="devolucaoEquipamento" border="1" cellspacing="0" cellpadding="2"
+ 		emptyMessage="Nenhum equipamento cadastrado" rows="10" 
+ 		paginator="true" paginatorPosition="bottom" 
+ 		style="margin-top: 10px margin-bottom:0" id="equipamentos-devolucoes"> 
+ 		 			   		
+			<p:column  headerText="Patrimônio" sortBy="#{devolucaoEquipamentoEdicao.equipamento.patrimonio}" width="100"> 
+				<h:outputText value="#{devolucaoEquipamento.equipamento.patrimonio}"/> 
+			</p:column>
+ 			
+			<p:column headerText="Número de Série" sortBy="#{devolucaoEquipamento.equipamento.serie}" width="125"> 
+				<h:outputText value="#{devolucaoEquipamento.equipamento.serie}"/>  
+			</p:column>
+					
+			<p:column headerText="Categoria" sortBy="#{devolucaoEquipamento.equipamento.categoria}" width="80"> 	 
+				<h:outputText value="#{devolucaoEquipamento.equipamento.categoria}"/>   
+			</p:column> 
+					
+			<p:column headerText="Descrição" >
+				<h:outputText value="#{devolucaoEquipamento.equipamento.descricao}"/>   
+			</p:column>
+					
+			<p:column  headerText="Marca" sortBy="#{devolucaoEquipamento.equipamento.marca}" width="70"> 
+				<h:outputText value="#{devolucaoEquipamento.equipamento.marca}"/>    
+			</p:column>
+					 
+			<p:column  headerText="Status" sortBy="#{devolucaoEquipamento.equipamento.statusEquipamento}" width="70"> 
+				<h:outputText value="#{devolucaoEquipamento.equipamento.statusEquipamento}"/>    
+			</p:column>
+					
+			<p:column headerText="Modelo" width="80" > 
+				<h:outputText value="#{devolucaoEquipamento.equipamento.modelo}"/>    
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoDevolucaoEquipamentosBean.selecionada)}" /> 
+			<h:outputText value=" equipamentos selecionados. " />
+		</f:facet>
+												 	 			 		
+		</p:dataTable>
+	 			
+		</p:dialog>  
+		
+	</h:form> 
+	
+</ui:define>
+
+</ui:composition> 

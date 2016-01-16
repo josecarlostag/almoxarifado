@@ -1,0 +1,165 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+	
+	 <ui:define name="corpo">	
+
+	<f:metadata> 
+    	   	<f:viewAction action="#{gestaoFornecedoresBean.consultar}"/>   
+ 	</f:metadata> 
+ 	<h1 style="font-weight:bold">Consulta de fornecedores</h1> 
+ 	
+ 	<h:form id="frm-fornecedor"> 	
+ 	
+ 		<p:messages id="msgs"/>
+ 	 
+ 		<p:toolbar id="toolbar">
+		<f:facet name="left">
+			<p:commandButton value="Novo fornecedor" icon="ui-icon-suitcase" 
+			action="#{gestaoFornecedoresBean.prepararNovoCadastro}"
+			process="@this" update="fornecedor-dialog"
+			oncomplete="PF('edicaoFornecedorDialog').show()">
+			<p:resetInput target="fornecedor-dialog"/>
+			</p:commandButton>
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical" />
+	         		</span>
+	         		
+	         		<p:commandButton icon="ui-icon-pencil" title="Editar" 
+	         		process="@this" update="fornecedor-dialog"
+					oncomplete="PF('edicaoFornecedorDialog').show()"
+	         		disabled="#{gestaoFornecedoresBean.fornecedorSelecionado == null}">
+	         		
+	         		<f:setPropertyActionListener value="#{gestaoFornecedoresBean.fornecedorSelecionado}" 
+	         		target="#{gestaoFornecedoresBean.fornecedorEdicao}"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-trash" title="Excluir" 
+	         		process="@this" update="fornecedores-table msgs toolbar"
+	         		action="#{gestaoFornecedoresBean.excluir}"
+	         		disabled="#{gestaoFornecedoresBean.fornecedorSelecionado == null}">
+	         		
+	         		<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+	         			message="Tem certeza que deseja excluir este fornecedor"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para PDF" 
+						ajax="false" immediate="true">
+	         			<p:dataExporter type="pdf" target="fornecedores-table" fileName="fornecedores"/>
+	         		</p:commandButton>
+		 </f:facet>
+		</p:toolbar>
+	
+     	<p:dataTable value="#{gestaoFornecedoresBean.todosFornecedores}"   
+ 		var="fornecedor" border="1" cellspacing="0" cellpadding="2"
+ 		emptyMessage="Nenhum fornecedor cadastrado" rows="10" 
+ 		paginator="true" paginatorPosition="bottom"
+ 		style="margin-top: 10px" id="fornecedores-table"
+ 		selection="#{gestaoFornecedoresBean.fornecedorSelecionado}"
+ 		selectionMode="single" rowKey="#{fornecedor.id}"> 
+ 		
+ 		<p:ajax event="rowSelect" update=":frm-fornecedor:toolbar"/>
+		<p:ajax event="rowUnselect" update=":frm-fornecedor:toolbar"/>  
+   			
+			<p:column headerText="Fornecedor" sortBy="#{fornecedor.nomeFornecedor}"> 
+	 			<h:outputText value="#{fornecedor.nomeFornecedor}"/>  
+			</p:column>
+			
+ 			<p:column width="200" headerText="Endereço" sortBy="#{fornecedor.endereco}"> 
+	   			<h:outputText value="#{fornecedor.endereco}"/>   
+			</p:column> 
+			
+	 		<p:column width="120" headerText="Cidade" sortBy="#{fornecedor.cidade.nomeCidade}">
+				<h:outputText value="#{fornecedor.cidade.nomeCidade}"/>   
+			</p:column>
+			 
+			<p:column width="65" headerText="Estado" sortBy="#{fornecedor.cidade.estado}"> 
+				<h:outputText value="#{fornecedor.cidade.estado}"/>    
+			</p:column>
+			
+			<p:column width="100" headerText="Telefone" sortBy="#{fornecedor.telefone}">
+				<h:outputText value="#{fornecedor.telefone}"/>    
+			</p:column>
+			
+			<p:column width="160" headerText="Email" sortBy="#{fornecedor.email}">
+				<h:outputText value="#{fornecedor.email}"/>    
+			</p:column>
+			
+			<p:column width="80" headerText="Usuário" sortBy="#{fornecedor.usuario.login}">
+				<h:outputText value="#{fornecedor.usuario.login}"/>    
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoFornecedoresBean.fornecedores)}" /> 
+			<h:outputText value=" fornecedores cadastrados. " />
+			</f:facet> 
+			 	 			 		
+	 	</p:dataTable>  
+		
+	 	<p:dialog header="Fornecedor" widgetVar="edicaoFornecedorDialog" 
+	 	id="fornecedor-dialog" resizable="false" modal="true" closeOnEscape="true">
+		
+			<p:messages id="msgs-dialog"/>
+			<p:defaultCommand target="cadastrar-button" scope="fornecedor-dialog"/>
+			<h:panelGrid columns="2" id="painel-dialog">
+			
+			<f:facet name="header"> 
+				<h:outputText value="Dados para cadastro de fornecedores" style="font-weight:bold"/> 				
+			</f:facet> 
+			
+				<p:outputLabel value="Nome:" for="nome-fornecedor" style="font-weight:bold"/>
+				<p:inputText id="nome-fornecedor" size="30" maxlength="30"
+				value="#{gestaoFornecedoresBean.fornecedorEdicao.nomeFornecedor}"/>
+				
+				<p:outputLabel value="Telefone:" for="telefone-fornecedor" style="font-weight:bold"/>
+				<p:inputMask id="telefone-fornecedor" size="20" maxlength="20"
+				value="#{gestaoFornecedoresBean.fornecedorEdicao.telefone}" mask="(99)9999-9999"/>
+				
+				<p:outputLabel value="Email:" for="email-fornecedor" style="font-weight:bold"/>
+				<p:inputText id="email-fornecedor" size="30" maxlength="30"
+				value="#{gestaoFornecedoresBean.fornecedorEdicao.email}"/>
+				
+				<p:outputLabel value="Endereço:" for="endereco-fornecedor" style="font-weight:bold"/>
+				<p:inputText id="endereco-fornecedor" size="10" maxlength="20"
+				value="#{gestaoFornecedoresBean.fornecedorEdicao.endereco}"/>
+				
+				<p:outputLabel for="cidade" value="Cidade: " style="font-weight:bold" />
+                <p:selectOneMenu id="cidade" value="#{gestaoFornecedoresBean.fornecedorEdicao.cidade}" 
+                converter="converterCidade" style="width:190px" itemValue="" noSelectionOption="true" >
+                	<f:selectItem itemLabel="Selecione cidade" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoCidadesBean.cidades}" 
+                    itemLabel="#{cidade.nomeCidade}" itemValue="#{cidade}" var="cidade"/>
+                </p:selectOneMenu>
+                
+       			<p:outputLabel for="usuario" value="Usuario: " style="font-weight:bold"/>
+                <p:selectOneMenu id="usuario" value="#{gestaoFornecedoresBean.fornecedorEdicao.usuario}" 
+                converter="converterUsuario" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione usuario" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoUsuariosBean.usuarios}" 
+                    itemLabel="#{usuario.nomeUsuario}" itemValue="#{usuario}" var="usuario"/>
+                </p:selectOneMenu>
+ 			
+       										
+			<h:outputText />
+					<p:commandButton value="Salvar" id="cadastrar-button"
+						action="#{gestaoFornecedoresBean.salvar}"
+						process="fornecedor-dialog" update="msgs-dialog painel-dialog"
+						oncomplete="if (!args.validationFailed) PF('edicaoFornecedorDialog').hide()" />
+												  								
+			</h:panelGrid>
+	 			
+		</p:dialog> 
+		
+	</h:form> 
+	
+</ui:define>
+
+</ui:composition> 

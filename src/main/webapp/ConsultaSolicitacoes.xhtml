@@ -1,0 +1,169 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+			
+	 <ui:define name="corpo">	
+
+	<f:metadata> 
+    	   	<f:viewAction action="#{gestaoSolicitacoesBean.consultar}"/>   
+ 	</f:metadata> 
+ 	
+ 	<h1 style="font-weight:bold">Consulta de solicitações</h1> 
+ 	
+ 	<h:form id="frm-solicitacao">
+ 		
+ 		<p:messages id="msgs"/>
+	
+			<p:toolbar id="toolbar">
+				<f:facet name="left">
+				<p:commandButton value="Nova solicitação" icon="ui-icon-cart"
+					action="#{gestaoSolicitacoesBean.prepararNovoCadastro}"
+					process="@this" update="solicitacao-dialog"
+					oncomplete="PF('edicaoSolicitacaoDialog').show()">
+					
+					<p:resetInput target="solicitacao-dialog"/>
+				</p:commandButton>
+					
+					<span class="ui-separator">
+						<span class="ui-icon ui-icon-grip-dotted-vertical" />
+            		</span>
+            		
+            		<p:commandButton icon="ui-icon-pencil" title="Editar" 
+					process="@this" update="solicitacao-dialog"
+					oncomplete="PF('edicaoSolicitacaoDialog').show()"
+            		disabled="#{gestaoSolicitacoesBean.solicitacaoSelecionada == null}">
+            		
+            		<f:setPropertyActionListener value="#{gestaoSolicitacoesBean.solicitacaoSelecionada}" 
+	         		target="#{gestaoSolicitacoesBean.solicitacaoEdicao}"/>
+            		
+            		</p:commandButton>
+            		
+            		<p:commandButton icon="ui-icon-trash" title="Excluir" 
+            		process="@this" update="solicitacoes-table msgs toolbar"
+	          		action="#{gestaoSolicitacoesBean.excluir}"
+            		disabled="#{gestaoSolicitacoesBean.solicitacaoSelecionada == null}">
+            		
+            			<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+	         			message="Tem certeza que deseja excluir esta solicitação"/>
+            		
+            		</p:commandButton>
+            		
+            		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para XLS"
+            			ajax="false" immediate="true">
+	         			<p:dataExporter type="xls" target="solicitacoes-table" fileName="solicitacoes"/>
+	         		</p:commandButton>
+            		           		
+				</f:facet>
+			</p:toolbar>
+	
+			<p:dataTable value="#{gestaoSolicitacoesBean.todasSolicitacoes}" var="solicitacao"
+					emptyMessage="Nenhuma solicitação cadastrada." rows="10" 
+					paginator="true" paginatorPosition="bottom" id="solicitacoes-table"
+					selection="#{gestaoSolicitacoesBean.solicitacaoSelecionada}"
+					selectionMode="single" rowKey="#{solicitacao.id}">
+					
+						<p:ajax event="rowSelect" update=":frm-solicitacao:toolbar"/>
+						<p:ajax event="rowUnselect" update=":frm-solicitacao:toolbar"/>  
+   			
+  			<p:column width="100" headerText="Solicitacao" sortBy="#{solicitacao.ordemServico}"> 			 
+	  			<h:outputText value="#{solicitacao.ordemServico}"/>  
+			</p:column>
+			
+			<p:column width="90" headerText="Tipo" sortBy="#{solicitacao.tipo}"> 
+				<h:outputText value="#{solicitacao.tipo}"/>    
+			</p:column>
+			
+			<p:column  headerText="Data " width="65" sortBy="#{solicitacao.dataSolicitacao}"> 
+	  			<h:outputText value="#{solicitacao.dataSolicitacao}">
+	  			<f:convertDateTime pattern="dd/MM/yyyy" 
+	  			timeZone="America/Sao_Paulo" /> 
+	  			</h:outputText>  
+			</p:column>
+			
+			<p:column  headerText="Descrição" > 
+	  			<h:outputText value="#{solicitacao.descricao}"/>  
+			</p:column>
+			
+			<p:column  headerText="Status" width="65" sortBy="#{solicitacao.statusSolicitacao}"> 		   		
+	   			<h:outputText value="#{solicitacao.statusSolicitacao}"/>   
+			</p:column> 
+			
+			<p:column  headerText="Cliente" width="190"> 		   		
+	   			<h:outputText value="#{solicitacao.cliente.nomeCliente}"/>   
+			</p:column>
+			
+			<p:column headerText="Usuario" sortBy="#{solicitacao.usuario.login}" width="75">  
+	  			<h:outputText value="#{solicitacao.usuario.login}"/>  
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoSolicitacoesBean.solicitacoes)}" /> 
+			<h:outputText value=" solicitações cadastradas. " />
+			</f:facet> 
+			 			 		
+	 	</p:dataTable>  
+		
+	 	<p:dialog header="Solicitação" widgetVar="edicaoSolicitacaoDialog" 
+	 	id="solicitacao-dialog" resizable="false" modal="true" closeOnEscape="true">
+		
+			<p:messages id="msgs-dialog" />
+		<p:defaultCommand target="cadastrar-button" scope="solicitacao-dialog"/>
+			<h:panelGrid columns="2" id="painel-dialog">
+			
+					<f:facet name="header"> 
+						<h:outputText value="Dados para cadastro da solicitação" style="font-weight:bold"/> 				
+					</f:facet> 
+				
+				<p:outputLabel value="Tipo de Solicitação:" for="tipo" style="font-weight:bold"/>		
+				<h:selectOneRadio  id="tipo" value="#{gestaoSolicitacoesBean.solicitacaoEdicao.tipo}" > 
+			
+				<f:selectItems value="#{gestaoSolicitacoesBean.tipoSolicitacao}" var="tipoSolicitacao"
+				itemLabel="#{tipoSolicitacao}" itemValue="#{tipo}"  /> 
+				</h:selectOneRadio>
+				 
+				 <p:outputLabel value="Solicitação: " for="ordem-servico" style="font-weight:bold"/>
+					<p:inputMask id="ordem-servico" size="15" maxlength="10" 
+						value="#{gestaoSolicitacoesBean.solicitacaoEdicao.ordemServico}"
+						mask="a/9999" />
+				
+				<p:outputLabel value="Cliente: "  for="cliente" style="font-weight:bold"/>
+                <p:selectOneMenu id="cliente" value="#{gestaoSolicitacoesBean.solicitacaoEdicao.cliente}" 
+                converter="converterCliente" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione cliente" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoClientesBean.clientes}" 
+                    itemLabel="#{cliente.nomeCliente}" itemValue="#{cliente}" var="cliente"/>
+                </p:selectOneMenu>
+														
+				<p:outputLabel value="Data da solicitação: " for="data-solicitacao" style="font-weight:bold"/>
+					<p:calendar id="data-solicitacao" size="10" maxlength="10"
+						value="#{gestaoSolicitacoesBean.solicitacaoEdicao.dataSolicitacao}"
+						pattern="dd/MM/yyyy" mask="99/99/9999"/>
+						
+				<h:outputText value="Descrição: " for="descricao-solicitacao" style="font-weight:bold" /> 
+				<h:inputTextarea id="descricao-solicitacao" size="500"   maxlength="300" style="width:250px"
+				value="#{gestaoSolicitacoesBean.solicitacaoEdicao.descricao}"/>
+											
+				<p:outputLabel for="usuario" value="Usuario: " style="font-weight:bold"/>
+                <p:selectOneMenu id="usuario" value="#{gestaoSolicitacoesBean.solicitacaoEdicao.usuario}" 
+                converter="converterUsuario" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione usuario" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoUsuariosBean.usuarios}" 
+                    itemLabel="#{usuario.nomeUsuario}" itemValue="#{usuario}" var="usuario"/>
+                </p:selectOneMenu>
+								
+				<h:outputText /> 
+				<p:commandButton value="Cadastrar"  id="cadastrar-button"
+					action="#{gestaoSolicitacoesBean.salvar}"
+					process="solicitacao-dialog" update="msgs-dialog painel-dialog"
+					oncomplete="if (!args.validationFailed)PF('edicaoSolicitacaoDialog').hide()"/> 
+								
+			</h:panelGrid>	 			
+		</p:dialog>  		
+	</h:form> 	
+</ui:define>
+</ui:composition> 

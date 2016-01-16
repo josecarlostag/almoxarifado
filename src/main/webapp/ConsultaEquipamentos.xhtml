@@ -1,0 +1,182 @@
+<!DOCTYPE html> 
+<ui:composition template ="/WEB-INF/templates/Layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:f="http://xmlns.jcp.org/jsf/core" 
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+	
+	 <ui:define name="corpo">	
+
+	<f:metadata> 
+    	   	<f:viewAction action="#{gestaoEquipamentosBean.consultar}"/>   
+ 	</f:metadata> 
+ 	<h1 style="font-weight:bold">Consulta de equipamentos</h1> 
+ 	
+ 	<h:form id="frm-equipamento"> 	
+ 		
+ 		<p:messages id="msgs"/>
+ 	 
+ 		<p:toolbar id="toolbar">
+		<f:facet name="left">
+			<p:commandButton value="Novo equipamento" icon="ui-icon-wrench" 
+			action="#{gestaoEquipamentosBean.prepararNovoCadastro}"
+			process="@this" update="equipamento-dialog"
+			oncomplete="PF('edicaoEquipamentoDialog').show()">
+			<p:resetInput target="equipamento-dialog"/>
+			</p:commandButton>
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical" />
+	         		</span>
+	         		
+	         		<p:commandButton icon="ui-icon-pencil" title="Editar"
+	         		process="@this" update="equipamento-dialog"
+					oncomplete="PF('edicaoEquipamentoDialog').show()"
+	         		disabled="#{gestaoEquipamentosBean.equipamentoSelecionado == null}" >
+	         		
+	         		<f:setPropertyActionListener value="#{gestaoEquipamentosBean.equipamentoSelecionado}" 
+	         		target="#{gestaoEquipamentosBean.equipamentoEdicao}"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-trash" title="Excluir" 
+	         		process="@this" update="equipamentos-table msgs toolbar"
+	         		action="#{gestaoEquipamentosBean.excluir}"
+	         		disabled="#{gestaoEquipamentosBean.equipamentoSelecionado == null}">
+	         		
+	         			<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+	         			message="Tem certeza que deseja excluir este equipamento"/>
+	         		
+	         		</p:commandButton>
+	         		
+	         		<p:commandButton icon="ui-icon-arrowthick-1-s" title="Exportar para PDF"
+						ajax="false" immediate="true">
+	         			<p:dataExporter type="pdf" target="equipamentos-table" fileName="equipamentos"/>
+	         		</p:commandButton>
+		</f:facet>
+		</p:toolbar>
+	
+     	<p:dataTable value="#{gestaoEquipamentosBean.todosEquipamentos}"   
+ 		var="equipamento" border="1" cellspacing="0" cellpadding="2"
+ 		emptyMessage="Nenhum equipamento cadastrado" rows="10" 
+ 		paginator="true" paginatorPosition="bottom"
+ 		style="margin-top: 10px" id="equipamentos-table"
+ 		selection="#{gestaoEquipamentosBean.equipamentoSelecionado}"
+ 		selectionMode="single" rowKey="#{equipamento.id}">   
+ 		
+ 		<p:ajax event="rowSelect" update=":frm-equipamento:toolbar"/>
+		<p:ajax event="rowUnselect" update=":frm-equipamento:toolbar"/>
+   			
+  			<p:column  headerText="Patrimônio" sortBy="#{equipamento.patrimonio}" width="90"> 
+	  			<h:outputText value="#{equipamento.patrimonio}"/>  
+			</p:column>
+			
+			<p:column headerText="Número de Série" sortBy="#{equipamento.serie}" width="125"> 
+	  			<h:outputText value="#{equipamento.serie}"/>  
+			</p:column>
+			
+ 			<p:column headerText="Categoria" sortBy="#{equipamento.categoria}" width="80"> 	 
+	   			<h:outputText value="#{equipamento.categoria}"/>   
+			</p:column> 
+			
+	 		<p:column headerText="Descrição"> 
+				<h:outputText value="#{equipamento.descricao}"/>   
+			</p:column>
+			
+			<p:column  headerText="Marca" sortBy="#{equipamento.marca}" width="70"> 
+				<h:outputText value="#{equipamento.marca}"/>    
+			</p:column>
+			 
+			<p:column  headerText="Status" sortBy="#{equipamento.statusEquipamneto}" width="70"> 
+				<h:outputText value="#{equipamento.statusEquipamento}"/>    
+			</p:column>
+			
+			<p:column headerText="Modelo" width="80" > 
+				<h:outputText value="#{equipamento.modelo}"/>    
+			</p:column>
+			
+			<p:column  headerText="Solicitação" width="80">  
+				<h:outputText value="#{equipamento.entrada.solicitacao.ordemServico}"/>    
+			</p:column>
+			
+			<p:column width="75" headerText="Usuario">  
+				<h:outputText value="#{equipamento.usuario.login}"/>    
+			</p:column>
+			
+			<f:facet name="footer"> <h:outputText value="Tem " /> 
+			<h:outputText value="#{fn:length(gestaoEquipamentosBean.equipamentos)}" /> 
+			<h:outputText value=" equipamentos cadastrados. " />
+			</f:facet> 
+						 	 			 		
+	 	</p:dataTable>  
+		
+	 	<p:dialog header="Equipamento" widgetVar="edicaoEquipamentoDialog" 
+	 	id="equipamento-dialog" resizable="false" modal="true" closeOnEscape="true">
+		
+			<p:messages id="msgs-dialog" />
+			<p:defaultCommand target="cadastrar-button" scope="equipamento-dialog"/>
+			<h:panelGrid columns="2" id="painel-dialog">
+			
+					<f:facet name="header"> 
+						<h:outputText value="Dados para cadastro de equipamentos" style="font-weight:bold"/> 				
+					</f:facet> 
+					
+				<p:outputLabel value="Patrimônio: " for="patrimonio" style="font-weight:bold"/>
+				<p:inputText id="patrimonio" size="10" maxlength="10" 
+				value="#{gestaoEquipamentosBean.equipamentoEdicao.patrimonio}" />
+				
+				<p:outputLabel value="Série: " for="serie" style="font-weight:bold"/>
+				<p:inputText id="serie" size="15" maxlength="15" 
+				value="#{gestaoEquipamentosBean.equipamentoEdicao.serie}" />	
+				
+				<p:outputLabel value="Categoria: " for="categoria" style="font-weight:bold"/>		
+				<h:selectOneRadio  id="categoria" value="#{gestaoEquipamentosBean.equipamentoEdicao.categoria}" > 			
+					<f:selectItems value="#{gestaoEquipamentosBean.categoriaEquipamento}" var="categoria"
+					itemLabel="#{categoriaEquipamento}" itemValue="#{categoria}"  /> 
+				</h:selectOneRadio>
+				 
+				<p:outputLabel value="Descrição: " for="descricao" style="font-weight:bold"/>
+				<p:inputText id="descricao" size="15" maxlength="40" 
+				value="#{gestaoEquipamentosBean.equipamentoEdicao.descricao}" />
+										
+				<p:outputLabel value="Marca: " for="marca" style="font-weight:bold"/>
+				<p:inputText id="marca" size="10" maxlength="10" 
+				value="#{gestaoEquipamentosBean.equipamentoEdicao.marca}" />
+				
+				 <p:outputLabel value="Modelo: " for="modelo" style="font-weight:bold"/>
+				 <p:inputText id="modelo" size="10" maxlength="10" 
+				 value="#{gestaoEquipamentosBean.equipamentoEdicao.modelo}" />
+									
+				<p:outputLabel for="entrada" value="Entrada: " style="font-weight:bold"/>
+                <p:selectOneMenu id="entrada" value="#{gestaoEquipamentosBean.equipamentoEdicao.entrada}" 
+                converter="converterEntrada" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione entrada" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoEntradasBean.entradas}" 
+                    itemLabel="#{entrada.solicitacao.ordemServico}" itemValue="#{entrada}" var="entrada"/>
+                </p:selectOneMenu>
+																
+				<p:outputLabel for="usuario" value="Usuario: " style="font-weight:bold"/>
+                <p:selectOneMenu id="usuario" value="#{gestaoEquipamentosBean.equipamentoEdicao.usuario}" 
+                converter="converterUsuario" style="width:190px" itemValue="" noSelectionOption="true">
+                	<f:selectItem itemLabel="Selecione usuario" itemValue="" noSelectionOption="true" />
+                    <f:selectItems value="#{gestaoUsuariosBean.usuarios}" 
+                    itemLabel="#{usuario.nomeUsuario}" itemValue="#{usuario}" var="usuario"/>
+                </p:selectOneMenu>
+								
+				<h:outputText /> 
+				<p:commandButton value="Cadastrar"  id="cadastrar-button"
+					action="#{gestaoEquipamentosBean.salvar}"
+					process="equipamento-dialog" update=" msgs-dialog painel-dialog"
+					oncomplete="if (!args.validationFailed)PF('edicaoEquipamentoDialog').hide()"/> 
+								
+			</h:panelGrid>
+	 			
+		</p:dialog>   
+		
+	</h:form> 
+	
+</ui:define>
+
+</ui:composition> 
